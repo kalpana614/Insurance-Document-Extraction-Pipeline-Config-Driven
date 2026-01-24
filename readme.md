@@ -18,10 +18,10 @@ It implements cleaning, filtering, regex-based extraction, normalization, and pr
 
 ## Usage
 ```python
-from extraction_pipeline import extract_policy_data_with_priority
+from extraction_pipeline import run_pipeline
 
 email_text = open("sample_email.txt").read()
 doc_text = open("sample_doc.txt").read()
 
-output = extract_policy_data_with_priority(email_text, doc_text)
+output = run_pipeline(email_text, doc_text)
 print(output)
