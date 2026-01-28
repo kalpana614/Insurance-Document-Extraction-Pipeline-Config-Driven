@@ -52,9 +52,9 @@ Final Structured JSON Output
 
 | Field Name         | Required | Priority |
 | ------------------ | -------- | -------- |
-| policy_number      | ✅ Yes    | Email    |
-| limit_of_liability | ✅ Yes    | Email    |
-| deductible         | ❌ No     | Email    |
+| policy_number      |   Yes    | Email    |
+| limit_of_liability |   Yes    | Email    |
+| deductible         |   No     | Email    |
 
 - New fields can be added by updating configuration only, without changing pipeline logic.
 
@@ -63,24 +63,38 @@ Final Structured JSON Output
 
 All field behavior is controlled via a single configuration object:
 
-FIELD_CONFIG = {
+```python
+{
+  "metadata": {
+    "run_id": "uuid",
+    "timestamp": "ISO-8601",
+    "pipeline_version": "v1.0-day15"
+  },
+  "fields": {
     "policy_number": {
-        "extractor": extract_policy_number,
-        "priority": "email",
-        "required": True
+      "value": "PN-45678",
+      "source": "email",
+      "confidence": 0.95,
+      "required": true,
+      "reason": null
     },
     "limit_of_liability": {
-        "extractor": extract_limit,
-        "priority": "email",
-        "required": True
+      "value": 5000000,
+      "source": "email",
+      "confidence": 0.9,
+      "required": true,
+      "reason": null
     },
     "deductible": {
-        "extractor": extract_deductible,
-        "priority": "email",
-        "required": False
+      "value": null,
+      "source": null,
+      "confidence": 0.0,
+      "required": false,
+      "reason": "not_found"
     }
+  }
 }
-
+```
 
 - This allows the pipeline to scale to dozens of fields without rewriting code.
 
