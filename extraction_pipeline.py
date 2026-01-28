@@ -1,34 +1,12 @@
-email_text = """
-Hello Team,
+from datetime import datetime, timezone
+import uuid
 
-POLICY NO :   PN-45678
-
-Some random footer text
-Insured   Name: ABC Manufacturing Ltd
-
-LIMIT OF LIABILITY : $5,000,000 USD
-
-Phone: +61 987654321
-Email: broker@test.com
-
-Thanks,
-Broker Team
-"""
-doc_text = """
-Hello Team,
-
-POLICY NO :   PN-45678
-
-Some random footer text
-Insured   Name: ABC Manufacturing Ltd
-
-LIMIT OF LIABILITY : $5,000,000 USD
-
-
-
-Thanks,
-Broker Team
-"""
+def build_metadata():
+    return {
+        "run_id": str(uuid.uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "pipeline_version": "v1.0-day15"
+    }
 
 import re
 
@@ -119,12 +97,42 @@ FIELD_CONFIG = {
 }
 
 # ---------- Field Level Wrapper----------
-def wrap_field(value, source):
+
+def wrap_field(value, source, config, confidence, reason=None):
     return {
         "value": value,
         "source": source,
-        "confidence": 1.0 if value is not None else 0.0
+        "confidence": confidence,
+        "required": config.get("required", False),
+        "reason": reason
     }
+
+
+#-------------- Field Validation ------------
+def validate_required(field_name, wrapped_field, config):
+    if config.get("required") and wrapped_field["value"] is None:
+        wrapped_field["reason"] = "required_field_missing"
+    return wrapped_field
+
+#------------ Confidence Calculator ------------
+
+def calculate_confidence(value, source, is_required, is_unique=True):
+    confidence = 0.0
+
+    if value is not None:
+        confidence += 0.4
+
+        if source in ["email", "document"]:
+            confidence += 0.3
+
+        if is_unique:
+            confidence += 0.2
+
+        if is_required:
+            confidence += 0.1
+
+    return round(min(confidence, 1.0), 2)
+
 
 # ---------- Safe Extraction ----------    
 def safe_extract(extractor, lines):
@@ -157,17 +165,34 @@ def process_field(field_name, config, email_lines, doc_lines):
         value, source = try_sources(extractor, doc_lines, email_lines)
         source = "document" if source == "primary" else "email"
 
-    return wrap_field(value, source)
+    if value is None:
+        reason = "required_field_missing" if config.get("required") else "not_found"
+        confidence = 0.0
+    else:
+        confidence = calculate_confidence(
+            value=value,
+            source=source,
+            is_required=config.get("required", False),
+            is_unique=True
+        )
+        reason = None
+
+    wrapped = wrap_field(value, source, config, confidence, reason)
+
+    return validate_required(field_name, wrapped, config)
 
 # ---------- Final Pipeline ----------
 def run_pipeline(email_text, doc_text):
     email_lines = filter_lines(clean_text(email_text))
     doc_lines = filter_lines(clean_text(doc_text))
 
-    result = {}
+    result = {
+	"metadata": build_metadata(),
+        "fields": {}
+	}
 
     for field, config in FIELD_CONFIG.items():
-        result[field] = process_field(
+        result["fields"][field] = process_field(
             field, config, email_lines, doc_lines
         )
 
@@ -176,3 +201,4 @@ def run_pipeline(email_text, doc_text):
     
 output = run_pipeline(email_text, doc_text)
 print(output)
+
