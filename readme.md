@@ -59,7 +59,7 @@ Final Structured JSON Output
 - New fields can be added by updating configuration only, without changing pipeline logic.
 
 
-# 🧩 Configuration-Driven Design
+#  Configuration-Driven Design
 
 All field behavior is controlled via a single configuration object:
 
@@ -102,6 +102,7 @@ All field behavior is controlled via a single configuration object:
 
 Every run produces a stable, predictable JSON structure:
 
+```python
 FIELD_CONFIG = {
     "policy_number": {
         "extractor": extract_policy_number,
@@ -119,7 +120,7 @@ FIELD_CONFIG = {
         "required": False
     }
 }
-
+```
 
 # Confidence Scoring Logic
 
@@ -149,7 +150,7 @@ Final confidence is capped at 1.0.
 
 Wrong data is worse than missing data — this pipeline enforces that principle.
 
-# 🧪 Example Usage
+#  Example Usage
 output = run_pipeline(email_text, document_text)
 print(output)
 
@@ -166,7 +167,7 @@ The pipeline automatically:
 
 - Returns structured output
 
-# 🧑‍💻 Skills Demonstrated
+#  Skills Demonstrated
 
 - Python
 
@@ -184,7 +185,7 @@ The pipeline automatically:
 
 - AI Data Engineering principles
 
-# 📌 Future Enhancements
+#  Future Enhancements
 
 Multi-document aggregation
 
