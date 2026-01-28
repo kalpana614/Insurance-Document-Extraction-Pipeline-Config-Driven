@@ -1,27 +1,188 @@
-# Insurance Document Extraction Pipeline
+## Insurance Document Extraction Pipeline (Config-Driven)
 
-## Overview
-This Python-based project processes unstructured insurance emails and documents into structured JSON outputs.  
-It implements cleaning, filtering, regex-based extraction, normalization, and priority logic for multiple sources.
+# Overview
 
-## Features
-- Text preprocessing and cleaning of emails and documents
-- Regex-based extraction of policy number, limit of liability, and deductible
-- Source prioritization and conflict resolution
-- Config-driven framework for flexibility
-- Schema-validated JSON outputs
+This project implements a production-ready, config-driven text extraction pipeline for insurance documents and emails.
 
-## Tech Stack
-- Python
-- Regex
-- JSON
+It extracts structured insurance fields (like policy number, limit of liability, deductible) from noisy unstructured text, while ensuring:
 
-## Usage
-```python
-from extraction_pipeline import run_pipeline
+- High precision
 
-email_text = open("sample_email.txt").read()
-doc_text = open("sample_doc.txt").read()
+- Safe failure (never crashes)
 
-output = run_pipeline(email_text, doc_text)
+- Explicit ambiguity handling
+
+- Explainable confidence scoring
+
+- Stable, predictable output schema
+
+The pipeline is designed with real-world insurance workflows in mind, where data can appear in emails, documents, and attachments with inconsistencies.
+
+# Key Features
+
+- Config-driven architecture (no hardcoding)
+- Email > document priority handling
+- Noise filtering (signatures, contact info, footers)
+- Ambiguity-safe extraction (never guesses)
+- Dynamic confidence scoring
+- Required vs optional field validation
+- Metadata for traceability (run ID, timestamp, version)
+- Production-style structured JSON output
+
+# Architecture
+Raw Text (Email / Document)
+        ↓
+Text Cleaning
+        ↓
+Noise Filtering
+        ↓
+Regex-based Extraction
+        ↓
+Ambiguity Detection
+        ↓
+Priority Resolution (Email > Document)
+        ↓
+Confidence Scoring
+        ↓
+Validation (Required Fields)
+        ↓
+Final Structured JSON Output
+
+# Supported Fields
+
+| Field Name         | Required | Priority |
+| ------------------ | -------- | -------- |
+| policy_number      | ✅ Yes    | Email    |
+| limit_of_liability | ✅ Yes    | Email    |
+| deductible         | ❌ No     | Email    |
+
+- New fields can be added by updating configuration only, without changing pipeline logic.
+
+
+# 🧩 Configuration-Driven Design
+
+All field behavior is controlled via a single configuration object:
+
+FIELD_CONFIG = {
+    "policy_number": {
+        "extractor": extract_policy_number,
+        "priority": "email",
+        "required": True
+    },
+    "limit_of_liability": {
+        "extractor": extract_limit,
+        "priority": "email",
+        "required": True
+    },
+    "deductible": {
+        "extractor": extract_deductible,
+        "priority": "email",
+        "required": False
+    }
+}
+
+
+- This allows the pipeline to scale to dozens of fields without rewriting code.
+
+# Output Schema 
+
+Every run produces a stable, predictable JSON structure:
+
+FIELD_CONFIG = {
+    "policy_number": {
+        "extractor": extract_policy_number,
+        "priority": "email",
+        "required": True
+    },
+    "limit_of_liability": {
+        "extractor": extract_limit,
+        "priority": "email",
+        "required": True
+    },
+    "deductible": {
+        "extractor": extract_deductible,
+        "priority": "email",
+        "required": False
+    }
+}
+
+
+# Confidence Scoring Logic
+
+Confidence is deterministic and explainable, not guessed:
+
+| Signal                          | Weight |
+| ------------------------------- | ------ |
+| Value exists                    | +0.4   |
+| Trusted source (email/document) | +0.3   |
+| Unique match (no ambiguity)     | +0.2   |
+| Required field                  | +0.1   |
+
+
+Final confidence is capped at 1.0.
+
+# Safety & Reliability
+
+- Extractors never crash the pipeline
+
+- Ambiguous values are rejected
+
+- Missing fields are explicitly marked
+
+- Required field failures are flagged
+
+- Output schema is always preserved
+
+Wrong data is worse than missing data — this pipeline enforces that principle.
+
+# 🧪 Example Usage
+output = run_pipeline(email_text, document_text)
 print(output)
+
+
+The pipeline automatically:
+
+- Cleans and filters input
+
+- Applies extraction rules
+
+- Resolves source priority
+
+- Calculates confidence
+
+- Returns structured output
+
+# 🧑‍💻 Skills Demonstrated
+
+- Python
+
+- Regex-based extraction
+
+- Config-driven system design
+
+- Data validation & normalization
+
+- Confidence scoring
+
+- Fault-tolerant pipelines
+
+- Insurance domain understanding
+
+- AI Data Engineering principles
+
+# 📌 Future Enhancements
+
+Multi-document aggregation
+
+LLM-assisted fallback extraction
+
+Field-level confidence calibration
+
+Schema validation (JSON Schema / Pydantic)
+
+Batch processing support
+
+# 📄 License
+
+This project is for learning and demonstration purposes.
+
